@@ -33,6 +33,7 @@ async function run() {
 
     const database = client.db("campaignDB");
     const campaignCollection = database.collection("campaigns");
+    const prospectCollection = database.collection("prospects");
 
     // Get all user specific campaign
     app.get("/campaigns", async (req, res) => {
@@ -52,10 +53,33 @@ async function run() {
       res.send(result);
     });
 
+    // Get all campaign specific prospects
+    app.get("/prospects", async (req, res) => {
+      const queryId = req.query.id;
+      const queryEmail = req.query.email;
+
+      const query = { campaign_id: queryId, user_email: queryEmail };
+      const result = await prospectCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // Create campaigns
     app.post("/campaigns", async (req, res) => {
       const newCampaign = req.body;
       const result = await campaignCollection.insertOne(newCampaign);
+
+      if (result.insertedId) {
+        console.log("Campaign added successful!");
+      } else {
+        console.log("Campaign added failed!");
+      }
+      res.send(result);
+    });
+
+    // Create prospects
+    app.post("/prospects", async (req, res) => {
+      const newProspect = req.body;
+      const result = await prospectCollection.insertOne(newProspect);
 
       if (result.insertedId) {
         console.log("Campaign added successful!");
