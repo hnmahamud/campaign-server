@@ -34,12 +34,21 @@ async function run() {
     const database = client.db("campaignDB");
     const campaignCollection = database.collection("campaigns");
 
-    // Get user specific campaign
+    // Get all user specific campaign
     app.get("/campaigns", async (req, res) => {
       const queryEmail = req.query.email;
 
       const query = { user_email: queryEmail };
       const result = await campaignCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // Get single campaign
+    app.get("/single-campaign/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const query = { _id: new ObjectId(id) };
+      const result = await campaignCollection.findOne(query);
       res.send(result);
     });
 
