@@ -30,6 +30,23 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     client.connect();
+
+    const database = client.db("campaignDB");
+    const campaignCollection = database.collection("campaigns");
+
+    // Create campaigns
+    app.post("/campaigns", async (req, res) => {
+      const newCampaign = req.body;
+      const result = await campaignCollection.insertOne(newCampaign);
+
+      if (result.insertedId) {
+        console.log("Item added successfully!");
+      } else {
+        console.log("Item added failed!");
+      }
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
