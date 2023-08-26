@@ -63,6 +63,15 @@ async function run() {
       res.send(result);
     });
 
+    // Get all campaign specific prospects
+    app.get("/single-prospect/:id", async (req, res) => {
+      const queryId = req.params.id;
+
+      const query = { _id: new ObjectId(queryId) };
+      const result = await prospectCollection.findOne(query);
+      res.send(result);
+    });
+
     // Create campaigns
     app.post("/campaigns", async (req, res) => {
       const newCampaign = req.body;
@@ -85,6 +94,31 @@ async function run() {
         console.log("Campaign added successful!");
       } else {
         console.log("Campaign added failed!");
+      }
+      res.send(result);
+    });
+
+    // Change classes status
+    app.patch("/prospects/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const firstName = req.body.first_name;
+      const lastName = req.body.last_name;
+      const email = req.body.email;
+
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+        },
+      };
+      const result = await prospectCollection.updateOne(filter, updateDoc);
+      if (result.modifiedCount > 0) {
+        console.log("Prospect updated successfully!");
+      } else {
+        console.log("Prospect updated failed!");
       }
       res.send(result);
     });
