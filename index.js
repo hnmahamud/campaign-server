@@ -89,12 +89,26 @@ async function run() {
       res.send(result);
     });
 
-    // Delete specific campaigns
+    // Delete specific campaign
     app.delete("/campaigns/:id", async (req, res) => {
       const id = req.params.id;
 
       const query = { _id: new ObjectId(id) };
       const result = await campaignCollection.deleteOne(query);
+      if (result.deletedCount === 1) {
+        console.log("Successfully deleted one document.");
+      } else {
+        console.log("No documents matched the query. Deleted 0 documents.");
+      }
+      res.send(result);
+    });
+
+    // Delete specific prospect
+    app.delete("/prospects/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const query = { _id: new ObjectId(id) };
+      const result = await prospectCollection.deleteOne(query);
       if (result.deletedCount === 1) {
         console.log("Successfully deleted one document.");
       } else {
