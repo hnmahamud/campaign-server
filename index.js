@@ -14,7 +14,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6jia9zl.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -34,15 +34,24 @@ async function run() {
     const database = client.db("campaignDB");
     const campaignCollection = database.collection("campaigns");
 
+    // Get user specific campaign
+    app.get("/campaigns", async (req, res) => {
+      const queryEmail = req.query.email;
+
+      const query = { user_email: queryEmail };
+      const result = await campaignCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // Create campaigns
     app.post("/campaigns", async (req, res) => {
       const newCampaign = req.body;
       const result = await campaignCollection.insertOne(newCampaign);
 
       if (result.insertedId) {
-        console.log("Item added successfully!");
+        console.log("Campaign added successful!");
       } else {
-        console.log("Item added failed!");
+        console.log("Campaign added failed!");
       }
       res.send(result);
     });
