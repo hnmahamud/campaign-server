@@ -6,16 +6,16 @@ For install all dependency:
 npm install
 ```
 
-## Configure .env file
+## Create amd configure .env file
 
-For MongoDB
+For MongoDB need database username and password
 
 ```sh
 DB_USER=..........
 DB_PASS=..........
 ```
 
-For email send using nodemailer and gmail
+For send email using nodemailer and gmail need email and app password
 
 ```sh
 EMAIL=..........
