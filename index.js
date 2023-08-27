@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const nodemailer = require("nodemailer");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -13,6 +14,41 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// Send Email
+const sendMail = (emailData, emailAddress) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL,
+      pass: process.env.PASS,
+    },
+  });
+
+  // verify connection configuration
+  transporter.verify(function (error, success) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Server is ready to take our messages");
+    }
+  });
+
+  const mailOptions = {
+    from: process.env.EMAIL,
+    to: emailAddress,
+    subject: emailData?.subject,
+    html: `<p>${emailData?.body}</p>`,
+  };
+
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Email sent: " + info.response);
+    }
+  });
+};
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6jia9zl.mongodb.net/?retryWrites=true&w=majority`;
@@ -149,6 +185,32 @@ async function run() {
         console.log("No documents matched the query. Deleted 0 documents.");
       }
       res.send(result);
+    });
+
+    // Get all campaign specific prospects
+    app.get("/email-send", async (req, res) => {
+      const queryId = req.query.id;
+      const queryEmail = req.query.userEmail;
+
+      const campaignQuery = { _id: new ObjectId(queryId) };
+      const campaignResult = await campaignCollection.findOne(campaignQuery);
+
+      const data = {
+        subject: campaignResult?.title,
+        body: campaignResult?.content,
+      };
+
+      const prospectQuery = { campaign_id: queryId, user_email: queryEmail };
+      const prospectResult = await prospectCollection
+        .find(prospectQuery)
+        .toArray();
+
+      prospectResult.forEach((singleProspect) => {
+        const targetEmail = singleProspect?.email;
+        sendMail(data, targetEmail);
+      });
+
+      res.send({ status: true });
     });
 
     // Send a ping to confirm a successful connection
