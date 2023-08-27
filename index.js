@@ -127,9 +127,9 @@ async function run() {
       const result = await prospectCollection.insertOne(newProspect);
 
       if (result.insertedId) {
-        console.log("Campaign added successful!");
+        console.log("Prospect added successful!");
       } else {
-        console.log("Campaign added failed!");
+        console.log("Prospect added failed!");
       }
       res.send(result);
     });
@@ -159,18 +159,27 @@ async function run() {
       res.send(result);
     });
 
-    // Delete specific campaign
+    // Delete specific campaign and its prospects
     app.delete("/campaigns/:id", async (req, res) => {
       const id = req.params.id;
 
-      const query = { _id: new ObjectId(id) };
-      const result = await campaignCollection.deleteOne(query);
-      if (result.deletedCount === 1) {
+      const campaignQuery = { _id: new ObjectId(id) };
+      const campaignResult = await campaignCollection.deleteOne(campaignQuery);
+      if (campaignResult.deletedCount === 1) {
         console.log("Successfully deleted one document.");
       } else {
         console.log("No documents matched the query. Deleted 0 documents.");
       }
-      res.send(result);
+
+      const prospectQuery = { campaign_id: id };
+      const prospectResult = await prospectCollection.deleteMany(prospectQuery);
+      if (prospectResult.deletedCount > 0) {
+        console.log("Successfully deleted multiple document.");
+      } else {
+        console.log("No documents matched the query. Deleted 0 documents.");
+      }
+
+      res.send({ campaignResult, prospectResult });
     });
 
     // Delete specific prospect
