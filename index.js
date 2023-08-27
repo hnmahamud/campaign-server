@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
+const schedule = require("node-schedule");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -16,7 +17,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 // Send Email
-const sendMail = (emailData, emailAddress) => {
+const sendMail = (emailData, emailAddresses) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -36,7 +37,7 @@ const sendMail = (emailData, emailAddress) => {
 
   const mailOptions = {
     from: process.env.EMAIL,
-    to: emailAddress,
+    to: emailAddresses,
     subject: emailData?.subject,
     html: `<p>${emailData?.body}</p>`,
   };
@@ -200,6 +201,7 @@ async function run() {
     app.get("/email-send", async (req, res) => {
       const queryId = req.query.id;
       const queryEmail = req.query.userEmail;
+      const querySchedule = req.query.schedule;
 
       const campaignQuery = { _id: new ObjectId(queryId) };
       const campaignResult = await campaignCollection.findOne(campaignQuery);
@@ -214,9 +216,19 @@ async function run() {
         .find(prospectQuery)
         .toArray();
 
+      let emails = [];
       prospectResult.forEach((singleProspect) => {
         const targetEmail = singleProspect?.email;
-        sendMail(data, targetEmail);
+        emails.push(targetEmail);
+      });
+
+      const targetDate = new Date(querySchedule);
+      const job = schedule.scheduleJob(targetDate, () => {
+        // Place your task logic here
+        sendMail(data, emails);
+
+        // Cancel the job after it runs
+        job.cancel();
       });
 
       res.send({ status: true });
