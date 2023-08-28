@@ -19,6 +19,9 @@ app.use(express.json());
 // Send Email
 const sendMail = (emailData, emailAddresses) => {
   const transporter = nodemailer.createTransport({
+    // host: "smtp.gmail.com", // Your SMTP server hostname
+    // port: 465, // Your SMTP server port (587 for TLS, 465 for SSL)
+    // secure: true, // true for 465, false for other ports
     service: "gmail",
     auth: {
       user: process.env.EMAIL,
@@ -198,7 +201,7 @@ async function run() {
     });
 
     // Get all campaign specific prospects
-    app.get("/email-send", async (req, res) => {
+    app.post("/email-send", async (req, res) => {
       const queryId = req.query.id;
       const queryEmail = req.query.userEmail;
       const querySchedule = req.query.schedule;
